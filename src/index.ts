@@ -12,12 +12,16 @@ import { formatISO, nextDay } from "date-fns";
 import { HTTPException } from 'hono/http-exception'
 import { loginAuthrizationInfomation, signupAuthrizationInfomation } from './auth.schama';
 import { ZodError } from 'zod';
+import { password } from 'bun';
 
 const app = new Hono()
 
-let users : {[user_id: string]: string} = {
-  "admin": "password"
+let users : {
+  [user_id: string]: {password: string, salt: string}
+} = {
+  "admin": {password: "CT5MXoRhKrEmekATmm5h8vjjbhUwaTH+ugc8gANn6rY", salt: "aP6GF++Z/VbytX6pT3QSynlRyBNwkJ19F0VfXImVOYM"} //password:password
 }
+
 let session_ids : {[uuid: string]: string} = {
   "922d2784-e860-4d5f-b42b-6b03b502cbb5": "admin"
 }
@@ -25,7 +29,7 @@ let session_ids : {[uuid: string]: string} = {
 let posts : Array<{user_id: string, date: string, body: string}> = []
 
 const loginUser = (user_id: string, password: string): boolean => {
-  return password === users[user_id]
+  return password === users[user_id]["password"]
 }
 
 const verifyUser = (session_id: string) => {
@@ -78,7 +82,9 @@ app.post('/auth/login', async (c) => {
   try{
     const { user_id,password } = loginAuthrizationInfomation.parse(await c.req.json())
     
-    if (users[user_id]===password) {
+    const aimedUserHash = `$argon2id$v=19$m=65536,t=2,p=1$${users[user_id]["salt"]}$${users[user_id]["password"]}`
+
+    if (await Bun.password.verify(password, aimedUserHash)) {
       const uuid = crypto.randomUUID();
 
       setCookie(c, 'session_id', uuid)
@@ -111,7 +117,12 @@ app.post('/auth/signup', async (c) => {
     const {user_id, password} = signupAuthrizationInfomation.parse(await c.req.json());
 
     if (!users[user_id]) {
-      users[user_id] = password
+
+      const generatedHash = await Bun.password.hash(password)
+      const salt = generatedHash.split('$')[4]
+      const hashedPassword = generatedHash.split('$')[5]
+
+      users[user_id] = {"password": hashedPassword, "salt": salt}
       return c.text("success", 200)
     }
     else {
