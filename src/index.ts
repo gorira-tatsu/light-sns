@@ -10,7 +10,7 @@ import {
 import { createClient } from '@supabase/supabase-js'
 import { formatISO, nextDay } from "date-fns";
 import { HTTPException } from 'hono/http-exception'
-import { loginAuthrizationInfomation } from './auth.schama';
+import { loginAuthrizationInfomation, signupAuthrizationInfomation } from './auth.schama';
 import { ZodError } from 'zod';
 
 const app = new Hono()
@@ -107,17 +107,32 @@ app.post('/auth/login', async (c) => {
 })
 
 app.post('/auth/signup', async (c) => {
-  const {user_id, password} = await c.req.json();
+  try {
+    const {user_id, password} = signupAuthrizationInfomation.parse(await c.req.json());
 
-  console.log("test")
+    if (!users[user_id]) {
+      users[user_id] = password
+      return c.text("success", 200)
+    }
+    else {
+      throw new HTTPException(400, {
+        message: "already user_id",
+      })
+    }
+  } catch (e) {
+    if (e instanceof ZodError){
+      throw new HTTPException(400,{
+        message:e.message
+      })
+    }
 
-  if (!users[user_id]) {
-    users[user_id] = password
-    console.log("success")
-    return c.text("success", 200)
-  }
-  else {
-    return c.text("already user_id", 400)
+    if (e instanceof HTTPException){
+      throw e
+    }
+
+    throw new HTTPException(500, {
+      message: 'Internal Server Error'
+    })
   }
 })
 

@@ -46,7 +46,7 @@ describe('POST /service/post', () => {
   })
 })
 
-describe('Auth', () => {
+describe('POST /auth/login', () => {
   test('should succeed with equal authrization info', async () => {
     const res = await sendRequest(
       '/auth/login', 
@@ -95,7 +95,56 @@ describe('Auth', () => {
 
     expect(res.status).toBe(400)
   })
+})
 
+describe('POST /auth/signup', () => {
+  test('should succeed with new user_id', async () => {
+    const res = await sendRequest(
+      '/auth/signup',
+      JSON.stringify({
+        "user_id": "new_user",
+        "password": "new_password"
+      })
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe("success")
+  })
+
+  test('should say error with existing user_id', async () => {
+    const res = await sendRequest(
+      '/auth/signup',
+      JSON.stringify({
+        "user_id": "admin",
+        "password": "password"
+      })
+    )
+
+    expect(res.status).toBe(400)
+    expect((await res.json()).message).toBe("already user_id")
+  })
+
+  test('should say error with missing user_id', async () => {
+    const res = await sendRequest(
+      '/auth/signup',
+      JSON.stringify({
+        "password": "password"
+      })
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  test('should say error with missing password', async () => {
+    const res = await sendRequest(
+      '/auth/signup',
+      JSON.stringify({
+        "user_id": "new_user"
+      })
+    )
+
+    expect(res.status).toBe(400)
+  })
 })
 
 
