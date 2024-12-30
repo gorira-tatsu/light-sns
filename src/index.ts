@@ -8,7 +8,8 @@ import {
   deleteCookie,
 } from 'hono/cookie'
 import { createClient } from '@supabase/supabase-js'
-import { formatISO } from "date-fns";
+import { formatISO, nextDay } from "date-fns";
+import { HTTPException } from 'hono/http-exception'
 
 const app = new Hono()
 
@@ -26,11 +27,14 @@ const loginUser = (user_id: string, password: string): boolean => {
 }
 
 const verifyUser = (session_id: string) => {
-  try {
-    const user_id = session_ids[session_id]
+  const user_id = session_ids[session_id]
+
+  if (user_id) {
     return user_id
-  } catch (e) {
-   throw new Error("Not found user in session_ids")
+  } else {
+    throw new HTTPException(401, {
+      message: "Not found user in session_ids"
+    })
   }
 }
 
@@ -52,8 +56,13 @@ app.post('/service/post', async (c) => {
       body: body
     })
   } catch (e) {
-    console.error(e)
-    return c.text("Not found user in session_ids" ,400)
+    if (e instanceof HTTPException) {
+      throw e
+    }
+    
+    throw new HTTPException(500, {
+      message: 'Not connection'
+    })
   }
 
   return c.text("success", 200)
@@ -100,7 +109,15 @@ app.get('/system/show_session_ids', async(c) => {
   return c.json(session_ids)
 })
 
-export default { 
-  port: 3000, 
-  fetch: app.fetch, 
-} 
+app.onError((error, c) => {
+  if  (error instanceof HTTPException) {
+    return c.json({
+      message: error.message
+    }, error.status)
+  }
+  return c.json({
+    message: 'Internal Server Error'
+  }, 500)
+})
+
+export default app
