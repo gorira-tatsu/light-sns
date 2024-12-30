@@ -16,5 +16,6 @@ export const loginAuthrizationInfomation = z.object({
 
 export const signupAuthrizationInfomation = z.object({
     user_id: z.string(),
+    user_name: z.string(),
     password: z.string()
 })

@@ -10,11 +10,17 @@ import {
 import { createClient } from '@supabase/supabase-js'
 import { formatISO, nextDay } from "date-fns";
 import { HTTPException } from 'hono/http-exception'
-import { loginAuthrizationInfomation, signupAuthrizationInfomation } from './auth.schama';
+import { loginAuthrizationInfomation, signupAuthrizationInfomation } from './schama/auth.schama';
 import { ZodError } from 'zod';
 import { password } from 'bun';
+import AuthRoute from "./auth";
+import { PrismaClient } from '@prisma/client'
 
 const app = new Hono()
+
+app.route("/auth",AuthRoute)
+
+const prisma = new PrismaClient()
 
 let users : {
   [user_id: string]: {password: string, salt: string}
@@ -78,74 +84,6 @@ app.get('/service/getTimeline', async (c) => {
   return c.json(posts.slice(0, 200))
 })
 
-app.post('/auth/login', async (c) => {
-  try{
-    const { user_id,password } = loginAuthrizationInfomation.parse(await c.req.json())
-    
-    const aimedUserHash = `$argon2id$v=19$m=65536,t=2,p=1$${users[user_id]["salt"]}$${users[user_id]["password"]}`
-
-    if (await Bun.password.verify(password, aimedUserHash)) {
-      const uuid = crypto.randomUUID();
-
-      setCookie(c, 'session_id', uuid)
-      session_ids[uuid] = user_id
-
-      return c.text("login success", 200)
-    }
-    else {
-      throw new HTTPException(401)
-    }
-  }catch(e){
-    if (e instanceof ZodError){
-      throw new HTTPException(400,{
-        message:e.message
-      })
-    }
-
-    if (e instanceof HTTPException){
-      throw e
-    }
-
-    throw new HTTPException(500, {
-      message: 'Internal Server Error'
-    })
-  }
-})
-
-app.post('/auth/signup', async (c) => {
-  try {
-    const {user_id, password} = signupAuthrizationInfomation.parse(await c.req.json());
-
-    if (!users[user_id]) {
-
-      const generatedHash = await Bun.password.hash(password)
-      const salt = generatedHash.split('$')[4]
-      const hashedPassword = generatedHash.split('$')[5]
-
-      users[user_id] = {"password": hashedPassword, "salt": salt}
-      return c.text("success", 200)
-    }
-    else {
-      throw new HTTPException(400, {
-        message: "already user_id",
-      })
-    }
-  } catch (e) {
-    if (e instanceof ZodError){
-      throw new HTTPException(400,{
-        message:e.message
-      })
-    }
-
-    if (e instanceof HTTPException){
-      throw e
-    }
-
-    throw new HTTPException(500, {
-      message: 'Internal Server Error'
-    })
-  }
-})
 
 app.get('/system/show_user', async (c) => {
   return c.json(users)

@@ -1,0 +1,31 @@
+datasource db {
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Post {
+  id        BigInt  @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  body      String? @default("")
+}
+
+model User {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  userId      String? @default("") @unique
+  userName    String? @default("")
+  description String?
+  iconUrl     String?
+}
+
+model UserAuth {
+    id          BigInt   @id @default(autoincrement())
+    createdAt   DateTime @default(now())
+    userId      String? @default("") @unique
+    password    String? @default("")
+    salt        String? @default("")
+}
