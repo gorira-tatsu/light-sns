@@ -71,8 +71,29 @@ describe('Auth', () => {
       )
     )
 
+    expect(res.status).toBe(401)
+  })
+
+  test('should say error with missing user_id', async () => {
+    const res = await sendRequest(
+      '/auth/login',
+      JSON.stringify({
+        "password": "password"
+      })
+    )
+
     expect(res.status).toBe(400)
-    expect(await res.text()).toBe("unsolved")
+  })
+
+  test('should say error with missing password', async () => {
+    const res = await sendRequest(
+      '/auth/login',
+      JSON.stringify({
+        "user_id": "admin"
+      })
+    )
+
+    expect(res.status).toBe(400)
   })
 
 })

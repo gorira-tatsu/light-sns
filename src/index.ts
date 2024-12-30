@@ -10,6 +10,8 @@ import {
 import { createClient } from '@supabase/supabase-js'
 import { formatISO, nextDay } from "date-fns";
 import { HTTPException } from 'hono/http-exception'
+import { loginAuthrizationInfomation } from './auth.schama';
+import { ZodError } from 'zod';
 
 const app = new Hono()
 
@@ -73,16 +75,34 @@ app.get('/service/getTimeline', async (c) => {
 })
 
 app.post('/auth/login', async (c) => {
-  const {user_id, password} = await c.req.json();
-  
-  if (loginUser(user_id, password)) {
-    const uuid = crypto.randomUUID();
-    setCookie(c, 'session_id', uuid)
-    session_ids[uuid] = user_id
-    return c.text("login success", 200)
-  }
-  else {
-    return c.text("unsolved", 400)
+  try{
+    const { user_id,password } = loginAuthrizationInfomation.parse(await c.req.json())
+    
+    if (users[user_id]===password) {
+      const uuid = crypto.randomUUID();
+
+      setCookie(c, 'session_id', uuid)
+      session_ids[uuid] = user_id
+
+      return c.text("login success", 200)
+    }
+    else {
+      throw new HTTPException(401)
+    }
+  }catch(e){
+    if (e instanceof ZodError){
+      throw new HTTPException(400,{
+        message:e.message
+      })
+    }
+
+    if (e instanceof HTTPException){
+      throw e
+    }
+
+    throw new HTTPException(500, {
+      message: 'Internal Server Error'
+    })
   }
 })
 
