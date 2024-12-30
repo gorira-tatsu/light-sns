@@ -45,3 +45,51 @@ describe('POST /service/post', () => {
     expect((await res.json()).message).toBe("Not found user in session_ids")
   })
 })
+
+describe('Auth', () => {
+  test('should succeed with equal authrization info', async () => {
+    const res = await sendRequest(
+      '/auth/login', 
+      JSON.stringify({
+           "user_id": "admin",
+           "password": "password"
+      })
+    )
+    
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe("login success")
+  })
+
+  test('should say error with invalid authrization info', async () => {
+    const res = await sendRequest(
+      '/auth/login',
+      JSON.stringify(
+        {
+          "user_id": "admin",
+          "password": "passw0rd" // o -> 0
+        }
+      )
+    )
+
+    expect(res.status).toBe(400)
+    expect(await res.text()).toBe("unsolved")
+  })
+
+})
+
+
+async function sendRequest(
+  url:string,
+  body:string,
+  method:string = "POST",
+){
+  const res = await app.request(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: body
+  })
+
+  return res
+}

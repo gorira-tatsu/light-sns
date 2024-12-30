@@ -79,7 +79,7 @@ app.post('/auth/login', async (c) => {
     const uuid = crypto.randomUUID();
     setCookie(c, 'session_id', uuid)
     session_ids[uuid] = user_id
-    return c.text("success", 200)
+    return c.text("login success", 200)
   }
   else {
     return c.text("unsolved", 400)
