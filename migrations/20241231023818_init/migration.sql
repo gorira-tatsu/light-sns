@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "SessionIDs" (
+    "id" BIGSERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL DEFAULT '',
+    "UUID" TEXT NOT NULL DEFAULT '',
+
+    CONSTRAINT "SessionIDs_pkey" PRIMARY KEY ("id")
+);

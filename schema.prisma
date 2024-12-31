@@ -10,6 +10,7 @@ generator client {
 model Post {
   id        BigInt  @id @default(autoincrement())
   createdAt DateTime @default(now())
+  userId    String? @default("")
   body      String? @default("")
 }
 
@@ -28,4 +29,11 @@ model UserAuth {
     userId      String? @default("") @unique
     password    String? @default("")
     salt        String? @default("")
+}
+
+model SessionIDs {
+    id          BigInt @id @default(autoincrement())
+    createdAt   DateTime @default(now())
+    userId      String @default("")
+    UUID        String @default("") @unique
 }
