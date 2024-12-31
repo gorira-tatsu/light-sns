@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { testClient } from 'hono/testing'
 import { expect, test, describe } from 'bun:test'
-import app from './index'
-import {} from './index'
+import app from '../src/index'
+import {} from '../src/index'
 
 // Route tests
 
@@ -22,7 +22,7 @@ describe('POST /service/post', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        "session_id": "922d2784-e860-4d5f-b42b-6b03b502cbb5",
+        "session_id": "4ff3388f-8b0d-4b38-9dae-7dfcc546c5b0",
         "body": "foobar"
       })
     })
@@ -51,8 +51,8 @@ describe('POST /auth/login', () => {
     const res = await sendRequest(
       '/auth/login', 
       JSON.stringify({
-           "user_id": "admin",
-           "password": "password"
+           "user_id": "test",
+           "password": "test"
       })
     )
     
@@ -65,8 +65,8 @@ describe('POST /auth/login', () => {
       '/auth/login',
       JSON.stringify(
         {
-          "user_id": "admin",
-          "password": "passw0rd" // o -> 0
+          "user_id": "test",
+          "password": "tester" // +er
         }
       )
     )
@@ -103,6 +103,7 @@ describe('POST /auth/signup', () => {
       '/auth/signup',
       JSON.stringify({
         "user_id": "new_user",
+        "user_name": "new_user",
         "password": "new_password"
       })
     )
@@ -115,7 +116,8 @@ describe('POST /auth/signup', () => {
     const res = await sendRequest(
       '/auth/signup',
       JSON.stringify({
-        "user_id": "admin",
+        "user_id": "test",
+        "user_name": "test",
         "password": "password"
       })
     )

@@ -89,7 +89,7 @@ app.get('/service/getTimeline', async (c) => {
 
   }
   catch(e) {
-    console.log(e)
+
   }
 
 })

@@ -137,8 +137,6 @@ try {
     }
 } catch (e) {
 
-    console.debug(e)
-
     if (e instanceof ZodError){
     throw new HTTPException(400,{
         message:e.message
